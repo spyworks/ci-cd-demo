@@ -1,0 +1,25 @@
+server:
+    port: 8080
+
+spring:
+    application:
+        name: order-api
+
+    datasource:
+        url: jdbc:oracle:thin:@//oracle-db:1521/FREEPDB1
+        username: ORDER_APP
+        password: ORDER_APP
+        driver-class-name: oracle.jdbc.OracleDriver
+
+    jpa:
+        open-in-view: false
+        properties:
+            jakarta.persistence.provider: org.eclipse.persistence.jpa.PersistenceProvider
+            eclipselink.logging.level: INFO
+            eclipselink.weaving: false
+
+springdoc:
+    api-docs:
+        path: /v3/api-docs
+    swagger-ui:
+        path: /swagger-ui.html

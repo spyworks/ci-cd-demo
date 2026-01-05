@@ -1,0 +1,18 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:orderdb;MODE=Oracle;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema-h2.sql
+
+  jpa:
+    properties:
+      jakarta.persistence.provider: org.eclipse.persistence.jpa.PersistenceProvider
+      eclipselink.weaving: false
+      # IMPORTANT: don't try to generate schema in tests if you're providing SQL
+      eclipselink.ddl-generation: none
