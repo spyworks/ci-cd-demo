@@ -1,35 +1,33 @@
 pipeline {
   agent any
 
-  environment {
-    IMAGE_NAME = "order-api:local"
-  }
-
   stages {
     stage('Checkout') {
+      steps { checkout scm }
+    }
+
+    stage('Test (Maven container)') {
       steps {
-        // If Jenkins job is configured to use SCM, this is often optional.
-        checkout scm
+        sh '''
+          docker run --rm \
+            -v "$PWD":/workspace \
+            -w /workspace \
+            maven:3.9.8-eclipse-temurin-21 \
+            mvn -q -e clean test
+        '''
       }
     }
 
-    stage('Unit + Integration Tests') {
+    stage('Build order-api image') {
       steps {
-        sh 'mvn -q -e clean test'
+        sh 'docker build -t order-api:local .'
       }
     }
 
-    stage('Build Docker Image') {
+    stage('Deploy') {
       steps {
-        sh "docker build -t ${IMAGE_NAME} ."
-      }
-    }
-
-    stage('Deploy (docker compose)') {
-      steps {
-        // Use the repo’s compose file to start/update order-api (and dependencies).
-        sh "docker compose up -d oracle-db"
-        sh "docker compose up -d order-api"
+        sh 'docker compose up -d oracle-db'
+        sh 'docker compose up -d order-api'
       }
     }
   }

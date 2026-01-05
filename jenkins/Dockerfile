@@ -13,5 +13,3 @@ RUN apt-get update && apt-get install -y ca-certificates curl gnupg lsb-release 
 
 # Allow jenkins user to access docker socket (common local setup)
 RUN groupadd -g 998 docker || true && usermod -aG docker jenkins || true
-
-USER jenkins
