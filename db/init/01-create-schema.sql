@@ -1,14 +1,16 @@
--- Runs as SYSDBA per Oracle container scripts mechanism
+-- Switch to target pluggable database (executed as SYSDBA)
 ALTER SESSION SET CONTAINER=FREEPDB1;
 
+-- Create application user if missing
 BEGIN
 EXECUTE IMMEDIATE 'CREATE USER ORDER_APP IDENTIFIED BY ORDER_APP';
 EXCEPTION
   WHEN OTHERS THEN
-    IF SQLCODE != -01920 THEN RAISE; END IF; -- already exists
+    IF SQLCODE != -01920 THEN RAISE; END IF; -- ignore if user exists
 END;
 /
 
+-- Ensure user is unlocked and password set
 BEGIN
 EXECUTE IMMEDIATE 'ALTER USER ORDER_APP IDENTIFIED BY ORDER_APP ACCOUNT UNLOCK';
 EXCEPTION
@@ -16,6 +18,7 @@ EXCEPTION
 END;
 /
 
+-- Grant required roles and tablespace access
 BEGIN
 EXECUTE IMMEDIATE 'GRANT CONNECT, RESOURCE TO ORDER_APP';
 EXECUTE IMMEDIATE 'GRANT UNLIMITED TABLESPACE TO ORDER_APP';
@@ -24,16 +27,19 @@ EXCEPTION
 END;
 /
 
+-- Use application schema
 ALTER SESSION SET CURRENT_SCHEMA=ORDER_APP;
 
+-- Create order ID sequence if missing
 BEGIN
 EXECUTE IMMEDIATE 'CREATE SEQUENCE ORDERS_SEQ START WITH 1 INCREMENT BY 1';
 EXCEPTION
   WHEN OTHERS THEN
-    IF SQLCODE != -955 THEN RAISE; END IF;
+    IF SQLCODE != -955 THEN RAISE; END IF; -- ignore if exists
 END;
 /
 
+-- Create orders table if missing
 BEGIN
 EXECUTE IMMEDIATE '
 CREATE TABLE ORDERS (
@@ -46,6 +52,4 @@ CREATE TABLE ORDERS (
 )';
 EXCEPTION
   WHEN OTHERS THEN
-    IF SQLCODE != -955 THEN RAISE; END IF;
-END;
-/
+    IF SQLCODE != -955 THEN RAISE; END IF; -- ignore if ex

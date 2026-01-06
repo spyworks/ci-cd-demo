@@ -1,17 +1,21 @@
 name: ci-cd-demo
+
 services:
   oracle-db:
     image: container-registry.oracle.com/database/free:latest
     ports:
-      - "1521:1521"
+      - "1521:1521" # Oracle listener
     environment:
-      ORACLE_PWD: OraclePwd123
+      ORACLE_PWD: OraclePwd123 # SYS/SYSTEM password
     volumes:
-      - oracle_data:/opt/oracle/oradata
-      # IMPORTANT: official image executes startup scripts after DB starts
-      - ./db/init:/opt/oracle/scripts/startup
+      - oracle_data:/opt/oracle/oradata # Persist DB data
+      - ./db/init:/opt/oracle/scripts/startup # Run init scripts after startup
     healthcheck:
-      test: [ "CMD-SHELL", "echo 'SELECT 1 FROM DUAL;' | sqlplus -s system/OraclePwd123@//localhost:1521/FREEPDB1 || exit 1" ]
+      test:
+        [
+          "CMD-SHELL",
+          "echo 'SELECT 1 FROM DUAL;' | sqlplus -s system/OraclePwd123@//localhost:1521/FREEPDB1 || exit 1"
+        ]
       interval: 20s
       timeout: 10s
       retries: 30
@@ -22,26 +26,26 @@ services:
       context: .
       dockerfile: Dockerfile
     depends_on:
-      - oracle-db
+      - oracle-db # Requires DB
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "8080:8080" # API endpoint
     environment:
       SPRING_DATASOURCE_URL: jdbc:oracle:thin:@//oracle-db:1521/freepdb1
       SPRING_DATASOURCE_USERNAME: ORDER_APP
       SPRING_DATASOURCE_PASSWORD: ORDER_APP
-      SPRING_SQL_INIT_MODE: never
+      SPRING_SQL_INIT_MODE: never # DB initialized externally
 
   jenkins:
     build:
       context: ./jenkins
       dockerfile: Dockerfile
     ports:
-      - "8081:8080"
-      - "50000:50000"
+      - "8081:8080" # Jenkins UI
+      - "50000:50000" # Agent communication
     volumes:
-      - jenkins_home:/var/jenkins_home
-      - /var/run/docker.sock:/var/run/docker.sock
+      - jenkins_home:/var/jenkins_home # Persist Jenkins state
+      - /var/run/docker.sock:/var/run/docker.sock # Docker access
     environment:
       JAVA_OPTS: "-Djenkins.install.runSetupWizard=true"
 
