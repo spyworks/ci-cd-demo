@@ -57,8 +57,8 @@ pipeline {
   post {
     always {
       sh 'docker ps || true'
-      sh 'docker logs --tail 80 oracle-db || true'
-      sh 'docker logs --tail 80 order-api || true'
+      sh 'docker compose logs --tail 80 oracle-db || true'
+      sh 'docker compose logs --tail 80 order-api || true'
     }
   }
 }
